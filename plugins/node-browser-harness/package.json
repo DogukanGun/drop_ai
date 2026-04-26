@@ -1,0 +1,23 @@
+{
+  "name": "@dropai/node-browser-harness",
+  "version": "0.0.1",
+  "private": true,
+  "dropai": {
+    "node": {
+      "type": "browser-harness",
+      "category": "Browser",
+      "label": "Browser Harness",
+      "description": "Run Python helpers against a real Chrome via CDP",
+      "color": "#5fd49a",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "python",
+      "runtime": "harness_node:run",
+      "defaults": {
+        "code": "print(page_info())",
+        "name": "default",
+        "timeout": 30
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@dropai/node-browser-use",
+  "version": "0.0.1",
+  "private": true,
+  "dropai": {
+    "node": {
+      "type": "browser-use",
+      "category": "Browser",
+      "label": "Browser Agent",
+      "description": "LLM-driven web automation (browser-use)",
+      "color": "#6aa6ff",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "python",
+      "runtime": "browser_use_node:run",
+      "defaults": {
+        "task": "",
+        "maxSteps": 20,
+        "model": "gpt-4o-mini",
+        "headless": false
+      }
+    }
+  }
+}

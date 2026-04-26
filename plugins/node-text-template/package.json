@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/node-text-template",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "text-template",
+      "category": "Transform",
+      "label": "Text Template",
+      "description": "Render a {{template}} with the input payload",
+      "color": "#5fd49a",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "template": "{{input}}" }
+    }
+  }
+}

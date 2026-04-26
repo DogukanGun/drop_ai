@@ -1,0 +1,18 @@
+{
+  "name": "@dropai/node-echo",
+  "version": "0.0.1",
+  "private": true,
+  "dropai": {
+    "node": {
+      "type": "echo",
+      "category": "Transform",
+      "label": "Echo",
+      "description": "Round-trip the input through the python bridge",
+      "color": "#5fd49a",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "python",
+      "runtime": "echo_node:run"
+    }
+  }
+}

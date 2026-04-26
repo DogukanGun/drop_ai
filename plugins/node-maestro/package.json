@@ -1,0 +1,25 @@
+{
+  "name": "@dropai/node-maestro",
+  "version": "0.0.1",
+  "private": true,
+  "dropai": {
+    "node": {
+      "type": "maestro",
+      "category": "Research",
+      "label": "Maestro Research",
+      "description": "Multi-agent research mission against a hosted maestro backend",
+      "color": "#b07bff",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "python",
+      "runtime": "maestro_node:run",
+      "defaults": {
+        "task": "",
+        "model": "gpt-4o",
+        "baseUrl": "http://localhost:8000",
+        "pollInterval": 5,
+        "maxWaitSeconds": 1800
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "dropai",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Drag-and-drop AI agent builder",
+  "packageManager": "pnpm@10.12.4",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @dropai/web dev",
+    "dev:orchestrator": "pnpm --filter @dropai/orchestrator dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "setup:plugins": "scripts/setup-plugin-venvs.sh"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

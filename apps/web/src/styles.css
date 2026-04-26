@@ -1,0 +1,194 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161a22;
+  --panel-2: #1d222c;
+  --border: #262c39;
+  --text: #d8dde7;
+  --text-dim: #8b93a4;
+  --accent: #6aa6ff;
+  --accent-2: #b07bff;
+  --ok: #5fd49a;
+  --warn: #ffb454;
+  --err: #ff6f6f;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  grid-template-rows: 40px 1fr 220px;
+  grid-template-areas:
+    "topbar topbar topbar"
+    "palette canvas inspector"
+    "viz viz viz";
+  height: 100vh;
+  width: 100vw;
+}
+
+.topbar {
+  grid-area: topbar;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 12px;
+}
+.topbar h1 {
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.topbar .spacer { flex: 1; }
+.topbar button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+}
+.topbar button:hover { border-color: var(--accent); }
+.topbar button.primary { background: var(--accent); color: #08111f; border-color: var(--accent); }
+
+.palette {
+  grid-area: palette;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 8px;
+}
+.palette h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 8px 4px 4px;
+  letter-spacing: 0.6px;
+}
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: grab;
+  user-select: none;
+}
+.palette-item:hover { border-color: var(--accent); }
+.palette-item .swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.palette-item .name { font-weight: 500; }
+.palette-item .desc { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
+
+.canvas-wrap {
+  grid-area: canvas;
+  position: relative;
+  background:
+    radial-gradient(circle at 1px 1px, #20262f 1px, transparent 0) 0 0/24px 24px,
+    var(--bg);
+}
+
+.inspector {
+  grid-area: inspector;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  padding: 12px;
+  overflow-y: auto;
+}
+.inspector h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 8px;
+  letter-spacing: 0.6px;
+}
+.inspector label { display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-dim); }
+.inspector input, .inspector textarea, .inspector select {
+  width: 100%;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font: inherit;
+  margin-top: 4px;
+}
+.inspector textarea { min-height: 80px; resize: vertical; }
+.inspector .empty { color: var(--text-dim); font-style: italic; }
+
+.viz-panel {
+  grid-area: viz;
+  background: #07090d;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+.viz-panel header {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.viz-panel header h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0;
+  letter-spacing: 0.6px;
+}
+.viz-panel .badge {
+  background: var(--accent-2);
+  color: #0c0814;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.viz-panel .canvas-host {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropai-node {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 160px;
+  font-size: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.dropai-node.selected { border-color: var(--accent); }
+.dropai-node .node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+}
+.dropai-node .node-header .swatch { width: 8px; height: 8px; border-radius: 50%; }
+.dropai-node .node-header .label { font-weight: 600; }
+.dropai-node .node-body { padding: 6px 8px; color: var(--text-dim); font-size: 11px; min-height: 14px; }
+
+/* React Flow overrides */
+.react-flow__handle { background: var(--accent); border: 2px solid var(--bg); width: 9px; height: 9px; }
+.react-flow__edge-path { stroke: var(--accent); stroke-width: 1.5; }
+.react-flow__background { background-color: transparent; }
