@@ -4,7 +4,7 @@ import { pool } from './pool.js';
 interface FlowRow {
   id: string;
   name: string;
-  graph: { nodes: FlowDef['nodes']; edges: FlowDef['edges'] };
+  graph: { nodes: FlowDef['nodes']; edges: FlowDef['edges']; settings?: FlowDef['settings'] };
 }
 
 export async function upsertFlow(flow: FlowDef): Promise<void> {
@@ -12,7 +12,11 @@ export async function upsertFlow(flow: FlowDef): Promise<void> {
     `INSERT INTO flows (id, name, graph)
      VALUES ($1, $2, $3::jsonb)
      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, graph = EXCLUDED.graph, updated_at = NOW()`,
-    [flow.id, flow.name, JSON.stringify({ nodes: flow.nodes, edges: flow.edges })],
+    [
+      flow.id,
+      flow.name,
+      JSON.stringify({ nodes: flow.nodes, edges: flow.edges, settings: flow.settings ?? {} }),
+    ],
   );
 }
 
@@ -20,7 +24,13 @@ export async function getFlow(id: string): Promise<FlowDef | null> {
   const { rows } = await pool.query<FlowRow>(`SELECT id, name, graph FROM flows WHERE id = $1`, [id]);
   const row = rows[0];
   if (!row) return null;
-  return { id: row.id, name: row.name, nodes: row.graph.nodes, edges: row.graph.edges };
+  return {
+    id: row.id,
+    name: row.name,
+    nodes: row.graph.nodes,
+    edges: row.graph.edges,
+    settings: row.graph.settings ?? {},
+  };
 }
 
 export async function listFlows(): Promise<Array<{ id: string; name: string }>> {

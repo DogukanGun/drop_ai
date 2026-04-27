@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-web-search",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-web-search",
+      "category": "Tools",
+      "label": "Web Search",
+      "description": "Search the web (Tavily). Input: a search query. Returns top results as bullets.",
+      "color": "#6aa6ff",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "query": "", "maxResults": 5, "searchDepth": "basic" }
+    }
+  }
+}

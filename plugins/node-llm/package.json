@@ -1,0 +1,28 @@
+{
+  "name": "@dropai/node-llm",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "llm",
+      "category": "AI",
+      "label": "LLM",
+      "description": "Chat completion via an OpenAI-compatible API",
+      "color": "#b07bff",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": {
+        "model": "gpt-4o-mini",
+        "systemPrompt": "You are a helpful assistant.",
+        "userPromptTemplate": "{{input}}",
+        "temperature": 0.7,
+        "maxTokens": 1024,
+        "baseUrl": "https://api.openai.com/v1"
+      }
+    }
+  }
+}

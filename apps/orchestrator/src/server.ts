@@ -11,6 +11,7 @@ import { createRun, getFlow, listFlows, upsertFlow, deleteFlow } from './db/flow
 import { startRun } from './runtime/executor.js';
 import { eventBus } from './runtime/eventBus.js';
 import { nodeRegistry } from './nodes/loader.js';
+import { listMemory } from './runtime/memory.js';
 
 async function main() {
   const app = Fastify({ logger: true });
@@ -60,15 +61,23 @@ async function main() {
     return { ok: true };
   });
 
-  app.post<{ Params: { id: string } }>('/api/flows/:id/runs', async (req, reply) => {
-    const flow = await getFlow(req.params.id);
-    if (!flow) return reply.code(404).send({ error: 'not found' });
-    const runId = nanoid(12);
-    await createRun(runId, flow.id);
-    // fire and forget; caller subscribes via WS to follow progress
-    void startRun(flow, runId);
-    return { runId };
+  app.get<{ Params: { id: string } }>('/api/flows/:id/memory', async req => {
+    return { triples: listMemory(req.params.id) };
   });
+
+  app.post<{ Params: { id: string }; Body?: { input?: unknown } }>(
+    '/api/flows/:id/runs',
+    async (req, reply) => {
+      const flow = await getFlow(req.params.id);
+      if (!flow) return reply.code(404).send({ error: 'not found' });
+      const runId = nanoid(12);
+      await createRun(runId, flow.id);
+      const input = req.body?.input;
+      // fire and forget; caller subscribes via WS to follow progress
+      void startRun(flow, runId, { input });
+      return { runId };
+    },
+  );
 
   app.get('/ws/runs/:id/events', { websocket: true }, (socket, req) => {
     const runId = (req.params as { id: string }).id;

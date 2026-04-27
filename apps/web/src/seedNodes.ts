@@ -12,7 +12,8 @@ import type { NodeManifest } from '@dropai/runtime-core';
 export type ConfigField =
   | { kind: 'text'; key: string; label: string; placeholder?: string }
   | { kind: 'textarea'; key: string; label: string; placeholder?: string }
-  | { kind: 'select'; key: string; label: string; options: { value: string; label: string }[] };
+  | { kind: 'select'; key: string; label: string; options: { value: string; label: string }[] }
+  | { kind: 'nodeMultiSelect'; key: string; label: string; help?: string };
 
 export interface PaletteEntry extends NodeManifest {
   defaults: Record<string, unknown>;
@@ -47,6 +48,66 @@ const FIELD_HINTS: Record<string, ConfigField[]> = {
   ],
   'text-template': [
     { kind: 'textarea', key: 'template', label: 'Template', placeholder: 'Hello {{input}}' },
+  ],
+  llm: [
+    {
+      kind: 'select',
+      key: 'model',
+      label: 'Model',
+      options: [
+        { value: 'gpt-4o-mini', label: 'gpt-4o-mini' },
+        { value: 'gpt-4o', label: 'gpt-4o' },
+        { value: 'gpt-4.1-mini', label: 'gpt-4.1-mini' },
+        { value: 'o3-mini', label: 'o3-mini' },
+      ],
+    },
+    {
+      kind: 'textarea',
+      key: 'systemPrompt',
+      label: 'System prompt',
+      placeholder: 'You are a helpful assistant.',
+    },
+    {
+      kind: 'textarea',
+      key: 'userPromptTemplate',
+      label: 'User prompt template ({{input}} = upstream / chat message)',
+      placeholder: '{{input}}',
+    },
+    { kind: 'text', key: 'temperature', label: 'Temperature' },
+    { kind: 'text', key: 'maxTokens', label: 'Max tokens' },
+    { kind: 'text', key: 'baseUrl', label: 'Base URL (OpenAI-compatible)' },
+  ],
+  'llm-agent': [
+    {
+      kind: 'select',
+      key: 'model',
+      label: 'Model',
+      options: [
+        { value: 'gpt-4o-mini', label: 'gpt-4o-mini' },
+        { value: 'gpt-4o', label: 'gpt-4o' },
+        { value: 'gpt-4.1-mini', label: 'gpt-4.1-mini' },
+      ],
+    },
+    {
+      kind: 'textarea',
+      key: 'systemPrompt',
+      label: 'System prompt',
+      placeholder: 'You are a helpful agent.',
+    },
+    {
+      kind: 'nodeMultiSelect',
+      key: 'tools',
+      label: 'Tools',
+      help: 'Pick which canvas nodes the agent can call. Tool nodes are skipped from the linear run order.',
+    },
+    { kind: 'text', key: 'maxIterations', label: 'Max iterations' },
+    { kind: 'text', key: 'temperature', label: 'Temperature' },
+  ],
+  'tool-fetch': [{ kind: 'text', key: 'url', label: 'Default URL (optional)' }],
+  'tool-calculator': [{ kind: 'text', key: 'expression', label: 'Default expression (optional)' }],
+  'tool-web-search': [
+    { kind: 'text', key: 'query', label: 'Default query (optional)' },
+    { kind: 'text', key: 'maxResults', label: 'Max results' },
   ],
 };
 

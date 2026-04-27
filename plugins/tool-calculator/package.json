@@ -1,0 +1,24 @@
+{
+  "name": "@dropai/tool-calculator",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dependencies": {
+    "mathjs": "^14.0.1"
+  },
+  "dropai": {
+    "node": {
+      "type": "tool-calculator",
+      "category": "Tools",
+      "label": "Calculator",
+      "description": "Evaluate a math expression. Input: an expression like '17 * 23' or 'sqrt(2) * pi'.",
+      "color": "#ffb454",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "expression": "" }
+    }
+  }
+}

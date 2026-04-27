@@ -1,37 +1,32 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Palette } from './Palette';
 import { Canvas } from './Canvas';
 import { Inspector } from './Inspector';
 import { VizPanel } from './VizPanel';
 import { useFlow } from './store';
-import { fetchNodeManifests, saveFlow, startRun, subscribeToRun } from './api';
+import { fetchNodeManifests, saveFlow } from './api';
 import { paletteFromManifests } from './seedNodes';
 
 export function App() {
   const saveLocal = useFlow(s => s.saveLocal);
   const loadLocal = useFlow(s => s.loadLocal);
   const setFlowId = useFlow(s => s.setFlowId);
-  const flowId = useFlow(s => s.flowId);
   const flowName = useFlow(s => s.flowName);
   const setFlowName = useFlow(s => s.setFlowName);
   const toFlowDef = useFlow(s => s.toFlowDef);
   const nodeCount = useFlow(s => s.nodes.length);
   const edgeCount = useFlow(s => s.edges.length);
-  const clearEvents = useFlow(s => s.clearEvents);
-  const pushEvent = useFlow(s => s.pushEvent);
-  const setRunId = useFlow(s => s.setRunId);
-  const runId = useFlow(s => s.runId);
   const setPalette = useFlow(s => s.setPalette);
+  const memoryEnabled = useFlow(s => Boolean(s.settings.memoryEnabled));
+  const setSettings = useFlow(s => s.setSettings);
 
   const [status, setStatus] = useState<string>('');
-  const unsubRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     loadLocal();
     fetchNodeManifests()
       .then(manifests => setPalette(paletteFromManifests(manifests)))
       .catch(err => setStatus(`palette: ${err instanceof Error ? err.message : err}`));
-    return () => unsubRef.current?.();
   }, [loadLocal, setPalette]);
 
   const onSave = useCallback(async () => {
@@ -46,25 +41,10 @@ export function App() {
     }
   }, [saveLocal, toFlowDef, setFlowId]);
 
-  const onRun = useCallback(async () => {
-    let id = flowId;
-    try {
-      if (!id || nodeCount === 0) {
-        const def = toFlowDef();
-        const saved = await saveFlow(def);
-        setFlowId(saved.id);
-        id = saved.id;
-      }
-      clearEvents();
-      const { runId: newRunId } = await startRun(id!);
-      setRunId(newRunId);
-      setStatus(`running ${newRunId}`);
-      unsubRef.current?.();
-      unsubRef.current = subscribeToRun(newRunId, ev => pushEvent(ev));
-    } catch (err) {
-      setStatus(`run failed: ${err instanceof Error ? err.message : err}`);
-    }
-  }, [flowId, nodeCount, toFlowDef, setFlowId, clearEvents, setRunId, pushEvent]);
+  const onToggleMemory = useCallback(() => {
+    setSettings({ memoryEnabled: !memoryEnabled });
+    saveLocal();
+  }, [memoryEnabled, setSettings, saveLocal]);
 
   return (
     <div className="app-shell">
@@ -88,10 +68,19 @@ export function App() {
         </span>
         <span style={{ color: 'var(--text-dim)' }}>{status}</span>
         <div className="spacer" />
-        <button onClick={onSave}>Save</button>
-        <button className="primary" onClick={onRun} disabled={nodeCount === 0}>
-          {runId ? 'Run again' : 'Run'}
+        <button
+          onClick={onToggleMemory}
+          title="Persistent agent memory across chat turns (knowledge graph)"
+          style={{
+            background: memoryEnabled ? 'var(--accent-2)' : 'var(--panel-2)',
+            color: memoryEnabled ? '#0c0814' : 'var(--text-dim)',
+            borderColor: memoryEnabled ? 'var(--accent-2)' : 'var(--border)',
+            fontWeight: memoryEnabled ? 600 : 400,
+          }}
+        >
+          Memory: {memoryEnabled ? 'on' : 'off'}
         </button>
+        <button onClick={onSave}>Save</button>
       </div>
       <Palette />
       <Canvas />

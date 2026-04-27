@@ -10,10 +10,12 @@ export type StubRunner = (ctx: RunCtx, config: Record<string, unknown>, msg: unk
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export const STUB_RUNTIMES: Record<string, StubRunner> = {
-  input: async (ctx, config) => {
+  input: async (ctx, config, msg) => {
     ctx.emit({ kind: 'start' });
     await sleep(120);
-    const payload = config.payload ?? null;
+    // Runtime msg (e.g. a user's chat message) takes precedence; fall back to
+    // the static config payload for one-shot test runs.
+    const payload = msg ?? config.payload ?? null;
     ctx.emit({ kind: 'output', payload });
     ctx.emit({ kind: 'end' });
     return payload;
@@ -59,17 +61,4 @@ export const STUB_RUNTIMES: Record<string, StubRunner> = {
     return { stdout, stderr: '' };
   },
 
-  'knowledge-graph': async (ctx, config) => {
-    ctx.emit({ kind: 'start' });
-    await sleep(300);
-    const text = String(config.text ?? '');
-    const triples = text
-      .split('.')
-      .filter(s => s.trim().length > 0)
-      .slice(0, 3)
-      .map((s, i) => ({ subject: `node${i}`, predicate: 'mentions', object: s.trim() }));
-    ctx.emit({ kind: 'output', payload: { triples, htmlPath: null } });
-    ctx.emit({ kind: 'end' });
-    return { triples, htmlPath: null };
-  },
 };

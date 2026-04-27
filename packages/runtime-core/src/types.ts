@@ -35,11 +35,18 @@ export interface FlowEdge {
   targetHandle?: string;
 }
 
+export interface FlowSettings {
+  /** When true, the orchestrator extracts SPO triples from each chat turn and
+   *  prepends retrieved triples to the next turn's input as agent memory. */
+  memoryEnabled?: boolean;
+}
+
 export interface FlowDef {
   id: FlowId;
   name: string;
   nodes: FlowNode[];
   edges: FlowEdge[];
+  settings?: FlowSettings;
 }
 
 export type Message = {
@@ -98,6 +105,15 @@ export interface RunCtx {
   signal: AbortSignal;
   emit(event: Omit<AgentEvent, 'flowRunId' | 'nodeId' | 'ts'>): void;
   log(level: 'debug' | 'info' | 'warn' | 'error', message: string, meta?: unknown): void;
+  /**
+   * Invoke another node on the canvas as a tool. The target's events are
+   * emitted on its own nodeId with channel:'tool-call' so the visualizer can
+   * show the tool firing while the parent agent is "thinking".
+   *
+   * Optional — only orchestrators that run nodes in-process expose it. Plugins
+   * that need it should throw a clear error when it's missing.
+   */
+  callTool?(targetNodeId: NodeId, input: unknown): Promise<unknown>;
 }
 
 export interface NodeRuntimeModule<TConfig = Record<string, unknown>, TIn = unknown, TOut = unknown> {

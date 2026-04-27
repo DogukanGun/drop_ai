@@ -1,67 +1,67 @@
 import { useMemo, useState } from 'react';
 import { Visualizer } from '@dropai/pulse';
 import { useFlow } from './store';
+import { ChatPanel } from './ChatPanel';
+
+type Tab = 'chat' | 'pulse' | 'log';
 
 /**
- * Default visualizer panel — auto-attached to every flow.
- *
- * Default mode is the Pulse canvas projector (tile per node, pulses on events).
- * A "log" toggle keeps the raw event stream available for debugging.
+ * Bottom panel docked to every flow. Three views:
+ *   - Chat:  talk to the flow as an agent (default)
+ *   - Pulse: live canvas visualizer pulsing on each node event
+ *   - Log:   raw event stream for debugging
  */
 export function VizPanel() {
   const events = useFlow(s => s.events);
   const nodes = useFlow(s => s.nodes);
   const runId = useFlow(s => s.runId);
-  const [mode, setMode] = useState<'viz' | 'log'>('viz');
+  const [tab, setTab] = useState<Tab>('chat');
 
   const registrations = useMemo(
-    () =>
-      nodes.map(n => ({
-        id: n.id,
-        label: n.data.label,
-        color: n.data.color,
-      })),
+    () => nodes.map(n => ({ id: n.id, label: n.data.label, color: n.data.color })),
     [nodes],
   );
 
   return (
     <section className="viz-panel">
       <header>
-        <h2>Visualizer</h2>
-        <span className="badge">pulse</span>
-        <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>
-          default · auto-attached to every flow
-        </span>
+        <TabBtn label="Chat" active={tab === 'chat'} onClick={() => setTab('chat')} />
+        <TabBtn label="Pulse" active={tab === 'pulse'} onClick={() => setTab('pulse')} />
+        <TabBtn label="Log" active={tab === 'log'} onClick={() => setTab('log')} />
         <span style={{ flex: 1 }} />
         {runId && (
-          <span style={{ color: 'var(--text-dim)', fontSize: 11, marginRight: 8 }}>
-            run {runId}
-          </span>
+          <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>run {runId}</span>
         )}
-        <button
-          onClick={() => setMode(mode === 'viz' ? 'log' : 'viz')}
-          style={{
-            background: 'var(--panel-2)',
-            color: 'var(--text)',
-            border: '1px solid var(--border)',
-            borderRadius: 4,
-            padding: '2px 8px',
-            font: 'inherit',
-            fontSize: 11,
-            cursor: 'pointer',
-          }}
-        >
-          {mode === 'viz' ? 'Show log' : 'Show viz'}
-        </button>
       </header>
       <div className="canvas-host">
-        {mode === 'viz' ? (
-          <Visualizer events={events} nodes={registrations} />
-        ) : (
-          <EventLog />
-        )}
+        {tab === 'chat' && <ChatPanel />}
+        {tab === 'pulse' && <Visualizer events={events} nodes={registrations} />}
+        {tab === 'log' && <EventLog />}
       </div>
     </section>
+  );
+}
+
+function TabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: active ? 'var(--panel-2)' : 'transparent',
+        color: active ? 'var(--text)' : 'var(--text-dim)',
+        border: '1px solid ' + (active ? 'var(--border)' : 'transparent'),
+        borderRadius: 4,
+        padding: '2px 10px',
+        font: 'inherit',
+        fontSize: 11,
+        textTransform: 'uppercase',
+        letterSpacing: 0.6,
+        fontWeight: 600,
+        cursor: 'pointer',
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -81,7 +81,7 @@ function EventLog() {
       }}
     >
       {events.length === 0 && (
-        <div style={{ color: 'var(--text-dim)' }}>No events yet — run a flow.</div>
+        <div style={{ color: 'var(--text-dim)' }}>No events yet — send a message in Chat.</div>
       )}
       {events.map((e, i) => (
         <div key={i} style={{ display: 'flex', gap: 8 }}>

@@ -16,9 +16,22 @@ export async function saveFlow(flow: FlowDef): Promise<{ id: string }> {
   return res.json();
 }
 
-export async function startRun(flowId: string): Promise<{ runId: string }> {
-  const res = await fetch(`/api/flows/${flowId}/runs`, { method: 'POST' });
+export async function startRun(
+  flowId: string,
+  body?: { input?: unknown },
+): Promise<{ runId: string }> {
+  const res = await fetch(`/api/flows/${flowId}/runs`, {
+    method: 'POST',
+    headers: body ? { 'content-type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
   if (!res.ok) throw new Error(`startRun: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchMemory(flowId: string): Promise<{ triples: { subject: string; predicate: string; object: string; ts: number }[] }> {
+  const res = await fetch(`/api/flows/${flowId}/memory`);
+  if (!res.ok) throw new Error(`fetchMemory: ${res.status}`);
   return res.json();
 }
 

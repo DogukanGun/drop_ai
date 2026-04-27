@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Edge, Node } from '@xyflow/react';
-import type { AgentEvent, FlowDef } from '@dropai/runtime-core';
+import type { AgentEvent, FlowDef, FlowSettings } from '@dropai/runtime-core';
 import { FALLBACK_PALETTE, type PaletteEntry } from './seedNodes';
 
 export interface NodeData extends Record<string, unknown> {
@@ -14,22 +14,33 @@ export interface NodeData extends Record<string, unknown> {
 export type FlowNode = Node<NodeData>;
 export type FlowEdge = Edge;
 
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  text: string;
+  ts: number;
+  /** Run id this message corresponds to (assistant + system rows). */
+  runId?: string;
+  pending?: boolean;
+}
+
 const STORAGE_KEY = 'dropai.flow.v0';
-const FLOW_ID_KEY = 'dropai.flow.id';
 
 interface FlowState {
   flowId: string | null;
   flowName: string;
   nodes: FlowNode[];
   edges: FlowEdge[];
+  settings: FlowSettings;
   selectedNodeId: string | null;
   events: AgentEvent[];
   runId: string | null;
   palette: PaletteEntry[];
+  chat: ChatMessage[];
   setFlowId: (id: string | null) => void;
   setFlowName: (name: string) => void;
   setNodes: (updater: FlowNode[] | ((prev: FlowNode[]) => FlowNode[])) => void;
   setEdges: (updater: FlowEdge[] | ((prev: FlowEdge[]) => FlowEdge[])) => void;
+  setSettings: (patch: Partial<FlowSettings>) => void;
   selectNode: (id: string | null) => void;
   updateNodeConfig: (id: string, patch: Record<string, unknown>) => void;
   saveLocal: () => void;
@@ -38,6 +49,9 @@ interface FlowState {
   pushEvent: (e: AgentEvent) => void;
   setRunId: (id: string | null) => void;
   setPalette: (palette: PaletteEntry[]) => void;
+  appendChat: (msg: ChatMessage) => void;
+  patchLastChat: (patch: Partial<ChatMessage>) => void;
+  clearChat: () => void;
   toFlowDef: () => FlowDef;
 }
 
@@ -46,14 +60,13 @@ export const useFlow = create<FlowState>((set, get) => ({
   flowName: 'Untitled flow',
   nodes: [],
   edges: [],
+  settings: {},
   selectedNodeId: null,
   events: [],
   runId: null,
   palette: FALLBACK_PALETTE,
-  setFlowId: id => {
-    if (id) localStorage.setItem(FLOW_ID_KEY, id);
-    set({ flowId: id });
-  },
+  chat: [],
+  setFlowId: id => set({ flowId: id }),
   setFlowName: name => set({ flowName: name }),
   setNodes: updater =>
     set(state => ({
@@ -63,6 +76,7 @@ export const useFlow = create<FlowState>((set, get) => ({
     set(state => ({
       edges: typeof updater === 'function' ? updater(state.edges) : updater,
     })),
+  setSettings: patch => set(state => ({ settings: { ...state.settings, ...patch } })),
   selectNode: id => set({ selectedNodeId: id }),
   updateNodeConfig: (id, patch) =>
     set(state => ({
@@ -73,8 +87,11 @@ export const useFlow = create<FlowState>((set, get) => ({
       ),
     })),
   saveLocal: () => {
-    const { flowId, flowName, nodes, edges } = get();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ flowId, flowName, nodes, edges }));
+    const { flowId, flowName, nodes, edges, settings } = get();
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ flowId, flowName, nodes, edges, settings }),
+    );
   },
   loadLocal: () => {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -85,12 +102,14 @@ export const useFlow = create<FlowState>((set, get) => ({
         flowName: string;
         nodes: FlowNode[];
         edges: FlowEdge[];
+        settings: FlowSettings;
       }>;
       set({
         flowId: parsed.flowId ?? null,
         flowName: parsed.flowName ?? 'Untitled flow',
         nodes: parsed.nodes ?? [],
         edges: parsed.edges ?? [],
+        settings: parsed.settings ?? {},
         selectedNodeId: null,
       });
     } catch {
@@ -101,11 +120,21 @@ export const useFlow = create<FlowState>((set, get) => ({
   pushEvent: e => set(state => ({ events: [...state.events, e].slice(-500) })),
   setRunId: id => set({ runId: id }),
   setPalette: palette => set({ palette }),
+  appendChat: msg => set(state => ({ chat: [...state.chat, msg] })),
+  patchLastChat: patch =>
+    set(state => {
+      if (state.chat.length === 0) return state;
+      const next = [...state.chat];
+      next[next.length - 1] = { ...next[next.length - 1]!, ...patch };
+      return { chat: next };
+    }),
+  clearChat: () => set({ chat: [] }),
   toFlowDef: () => {
-    const { flowId, flowName, nodes, edges } = get();
+    const { flowId, flowName, nodes, edges, settings } = get();
     return {
       id: flowId ?? '',
       name: flowName,
+      settings,
       nodes: nodes.map(n => ({
         id: n.id,
         type: n.data.type,

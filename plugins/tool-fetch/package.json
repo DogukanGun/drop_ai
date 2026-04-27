@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-fetch",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-fetch",
+      "category": "Tools",
+      "label": "Fetch",
+      "description": "GET a URL and return its body text (truncated to 5000 chars). Input: a URL.",
+      "color": "#5fd49a",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "url": "", "maxChars": 5000 }
+    }
+  }
+}

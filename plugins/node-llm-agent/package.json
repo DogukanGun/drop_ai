@@ -1,0 +1,29 @@
+{
+  "name": "@dropai/node-llm-agent",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "llm-agent",
+      "category": "AI",
+      "label": "LLM Agent",
+      "description": "LLM with tool-calling: picks which tools to invoke and loops until done",
+      "color": "#b07bff",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": {
+        "model": "gpt-4o-mini",
+        "systemPrompt": "You are a helpful agent. Use the available tools when they would help answer the user's question, then reply concisely.",
+        "tools": [],
+        "maxIterations": 6,
+        "temperature": 0.3,
+        "maxTokens": 1024,
+        "baseUrl": "https://api.openai.com/v1"
+      }
+    }
+  }
+}

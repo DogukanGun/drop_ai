@@ -51,15 +51,4 @@ export const SEED_NODE_MANIFESTS: NodeManifest[] = [
     runner: 'python',
     runtime: 'stub:browser-harness',
   },
-  {
-    type: 'knowledge-graph',
-    category: 'Knowledge',
-    label: 'Knowledge Graph',
-    description: 'Text → SPO triples → graph',
-    color: '#ffb454',
-    inputs: 1,
-    outputs: 1,
-    runner: 'python',
-    runtime: 'stub:knowledge-graph',
-  },
 ];
