@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-signforge",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-signforge",
+      "category": "Documents",
+      "label": "SignForge",
+      "description": "Send documents for e-signature directly from the agent flow",
+      "color": "#f59e0b",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "signerEmail": "", "documentTitle": "", "documentUrl": "" }
+    }
+  }
+}

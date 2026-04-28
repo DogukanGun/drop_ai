@@ -1,0 +1,29 @@
+{
+  "name": "@dropai/node-llm-agent-claude",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "llm-agent-claude",
+      "category": "AI",
+      "label": "Claude Agent",
+      "description": "Claude with tool-calling loop (requires a DropAI token)",
+      "color": "#d97706",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": {
+        "model": "claude-sonnet-4-6",
+        "dropaiToken": "",
+        "systemPrompt": "You are a helpful agent. Use the available tools when they would help answer the user's question, then reply concisely.",
+        "tools": [],
+        "maxIterations": 6,
+        "temperature": 0.3,
+        "maxTokens": 1024
+      }
+    }
+  }
+}

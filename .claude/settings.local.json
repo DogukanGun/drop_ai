@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter @dropai/orchestrator add @fastify/jwt bcryptjs)",
+      "Bash(pnpm --filter @dropai/orchestrator add -D @types/bcryptjs)",
+      "Read(//Users/dogukangundogan/.local/share/pnpm/**)",
+      "Bash(npx pnpm *)",
+      "Bash(node -e \"require\\('child_process'\\).execSync\\('corepack enable && pnpm --version', {stdio:'inherit'}\\)\")"
+    ]
+  }
+}

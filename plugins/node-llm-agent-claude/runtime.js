@@ -1,44 +1,35 @@
 /**
- * LLM Agent — runs an OpenAI tool-calling loop.
+ * Claude Agent — runs a tool-calling loop via the DropAI remote proxy.
+ * Users must supply a purchased DropAI API token in `dropaiToken`.
  *
- * Each iteration:
- *   1. Send messages + tools to the chat-completions endpoint.
- *   2. If the model returns tool_calls, dispatch each via ctx.callTool (which
- *      runs the named canvas node as a sub-call) and append the results.
- *   3. Otherwise, the assistant message is the final reply.
+ * The proxy base URL is read from DROPAI_PROXY_URL (set by the operator).
+ * It must expose an OpenAI-compatible /chat/completions endpoint.
  *
- * The orchestrator injects `config._tools` — the list of resolved tool node
- * summaries the user picked in the inspector — so this plugin doesn't need
- * registry access.
- *
- * Env: OPENAI_API_KEY (or whatever the configured baseUrl accepts).
+ * The orchestrator injects `config._tools` — resolved tool node summaries
+ * the user picked in the inspector.
  */
 
 const NAME_SAFE = /[^a-zA-Z0-9_-]/g;
 
 export async function run(ctx, config, msg) {
-  // If a DropAI platform token is configured, route through the proxy.
-  // Otherwise fall back to the OPENAI_API_KEY env var for direct API access.
-  const dropaiToken = String(config.dropaiToken || '').trim();
-  const apiKey = dropaiToken || process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('No API key found. Either set OPENAI_API_KEY in the environment or paste a DropAI token into the node config.');
+  const token = String(config.dropaiToken || '').trim();
+  if (!token) {
+    throw new Error(
+      'No DropAI token configured. Purchase a token at dropai.io and paste it into the "DropAI Token" field.',
+    );
   }
   if (typeof ctx.callTool !== 'function') {
     throw new Error(
-      'This orchestrator does not support tool dispatch. The LLM Agent needs ctx.callTool.',
+      'This orchestrator does not support tool dispatch. The Claude Agent needs ctx.callTool.',
     );
   }
 
-  const model = String(config.model || 'gpt-4o-mini');
+  const baseUrl = (process.env.DROPAI_PROXY_URL || 'https://api.anthropic.com/v1').replace(/\/$/, '');
+  const model = String(config.model || 'claude-sonnet-4-6');
   const systemPrompt = String(config.systemPrompt || 'You are a helpful agent.');
   const temperature = Number(config.temperature ?? 0.3);
   const maxTokens = Number(config.maxTokens ?? 1024);
   const maxIterations = Math.max(1, Number(config.maxIterations ?? 6));
-  const defaultBase = dropaiToken
-    ? (process.env.DROPAI_PROXY_URL || 'https://api.openai.com/v1')
-    : 'https://api.openai.com/v1';
-  const baseUrl = String(config.baseUrl || defaultBase).replace(/\/$/, '');
   const resolvedTools = Array.isArray(config._tools) ? config._tools : [];
 
   const tools = resolvedTools.map(t => ({
@@ -92,13 +83,13 @@ export async function run(ctx, config, msg) {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        authorization: `Bearer ${apiKey}`,
+        authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      throw new Error(`LLM API ${res.status}: ${text.slice(0, 300) || res.statusText}`);
+      throw new Error(`Claude API ${res.status}: ${text.slice(0, 300) || res.statusText}`);
     }
 
     const completion = await res.json();
@@ -111,8 +102,6 @@ export async function run(ctx, config, msg) {
       break;
     }
 
-    // Push the assistant message exactly as returned so the next round has
-    // its tool_calls available, then resolve each call and append a tool message.
     messages.push(message);
     ctx.emit({
       kind: 'progress',

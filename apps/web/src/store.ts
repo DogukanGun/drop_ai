@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Edge, Node } from '@xyflow/react';
 import type { AgentEvent, FlowDef, FlowSettings } from '@dropai/runtime-core';
 import { FALLBACK_PALETTE, type PaletteEntry } from './seedNodes';
+import { type AuthUser, getToken, setToken, clearToken } from './api';
 
 export interface NodeData extends Record<string, unknown> {
   type: string;
@@ -24,6 +25,30 @@ export interface ChatMessage {
 }
 
 const STORAGE_KEY = 'dropai.flow.v0';
+
+// ── Auth slice ────────────────────────────────────────────────────────────────
+
+export interface AuthState {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  signIn: (user: AuthUser, token: string) => void;
+  signOut: () => void;
+}
+
+export const useAuth = create<AuthState>(set => ({
+  user: null,
+  isAuthenticated: Boolean(getToken()),
+  signIn: (user, token) => {
+    setToken(token);
+    set({ user, isAuthenticated: true });
+  },
+  signOut: () => {
+    clearToken();
+    set({ user: null, isAuthenticated: false });
+  },
+}));
+
+// ── Flow slice ────────────────────────────────────────────────────────────────
 
 interface FlowState {
   flowId: string | null;

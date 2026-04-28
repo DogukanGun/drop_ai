@@ -1,35 +1,27 @@
 /**
- * LLM node — single-shot chat completion against any OpenAI-compatible API.
+ * Claude LLM node — single-shot chat completion routed through the DropAI
+ * remote proxy. Users must supply a purchased DropAI API token in `dropaiToken`.
  *
- * Source-capable: if no upstream node feeds it, the chat-message runtime input
- * (or static config) becomes the user content. Used in a chain it transforms
- * the upstream output through the configured prompt.
- *
- * Required env: OPENAI_API_KEY (or whatever the configured baseUrl accepts).
+ * The proxy base URL is read from DROPAI_PROXY_URL (set by the operator).
+ * It must expose an OpenAI-compatible /chat/completions endpoint.
  */
 
 const TEMPLATE_INPUT = /\{\{\s*input\s*\}\}/g;
 
 export async function run(ctx, config, msg) {
-  // If a DropAI platform token is configured, route through the proxy.
-  // Otherwise fall back to the OPENAI_API_KEY env var for direct API access.
-  const dropaiToken = String(config.dropaiToken || '').trim();
-  const apiKey = dropaiToken || process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  const token = String(config.dropaiToken || '').trim();
+  if (!token) {
     throw new Error(
-      'No API key found. Either set OPENAI_API_KEY in the environment or paste a DropAI token into the node config.',
+      'No DropAI token configured. Purchase a token at dropai.io and paste it into the "DropAI Token" field.',
     );
   }
 
-  const model = String(config.model || 'gpt-4o-mini');
+  const baseUrl = (process.env.DROPAI_PROXY_URL || 'https://api.anthropic.com/v1').replace(/\/$/, '');
+  const model = String(config.model || 'claude-sonnet-4-6');
   const systemPrompt = String(config.systemPrompt || 'You are a helpful assistant.');
   const userPromptTemplate = String(config.userPromptTemplate || '{{input}}');
   const temperature = Number(config.temperature ?? 0.7);
   const maxTokens = Number(config.maxTokens ?? 1024);
-  const defaultBase = dropaiToken
-    ? (process.env.DROPAI_PROXY_URL || 'https://api.openai.com/v1')
-    : 'https://api.openai.com/v1';
-  const baseUrl = String(config.baseUrl || defaultBase).replace(/\/$/, '');
 
   const upstream = stringifyMsg(msg);
   const userContent = userPromptTemplate.replace(TEMPLATE_INPUT, upstream);
@@ -48,7 +40,7 @@ export async function run(ctx, config, msg) {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      authorization: `Bearer ${apiKey}`,
+      authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       model,
@@ -63,7 +55,7 @@ export async function run(ctx, config, msg) {
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new Error(`LLM API ${res.status}: ${text.slice(0, 300) || res.statusText}`);
+    throw new Error(`Claude API ${res.status}: ${text.slice(0, 300) || res.statusText}`);
   }
 
   const body = await res.json();

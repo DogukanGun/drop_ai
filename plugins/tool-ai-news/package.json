@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-ai-news",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-ai-news",
+      "category": "Research & Data",
+      "label": "AI News Skill",
+      "description": "Fetches deeply filtered AI intelligence and real-time news for autonomous workflows",
+      "color": "#3b82f6",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "topic": "", "maxArticles": 5 }
+    }
+  }
+}

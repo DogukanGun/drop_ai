@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-matter-mcp",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-matter-mcp",
+      "category": "IoT",
+      "label": "Matter MCP",
+      "description": "Control any Matter-compatible smart home device using natural language commands",
+      "color": "#10b981",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "deviceId": "" }
+    }
+  }
+}

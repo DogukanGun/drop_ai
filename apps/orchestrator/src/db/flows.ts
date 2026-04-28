@@ -7,21 +7,26 @@ interface FlowRow {
   graph: { nodes: FlowDef['nodes']; edges: FlowDef['edges']; settings?: FlowDef['settings'] };
 }
 
-export async function upsertFlow(flow: FlowDef): Promise<void> {
+export async function upsertFlow(flow: FlowDef, userId: string): Promise<void> {
   await pool.query(
-    `INSERT INTO flows (id, name, graph)
-     VALUES ($1, $2, $3::jsonb)
+    `INSERT INTO flows (id, name, graph, user_id)
+     VALUES ($1, $2, $3::jsonb, $4)
      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, graph = EXCLUDED.graph, updated_at = NOW()`,
     [
       flow.id,
       flow.name,
       JSON.stringify({ nodes: flow.nodes, edges: flow.edges, settings: flow.settings ?? {} }),
+      userId,
     ],
   );
 }
 
-export async function getFlow(id: string): Promise<FlowDef | null> {
-  const { rows } = await pool.query<FlowRow>(`SELECT id, name, graph FROM flows WHERE id = $1`, [id]);
+export async function getFlow(id: string, userId?: string): Promise<FlowDef | null> {
+  const query = userId
+    ? `SELECT id, name, graph FROM flows WHERE id = $1 AND user_id = $2`
+    : `SELECT id, name, graph FROM flows WHERE id = $1`;
+  const params = userId ? [id, userId] : [id];
+  const { rows } = await pool.query<FlowRow>(query, params);
   const row = rows[0];
   if (!row) return null;
   return {
@@ -33,15 +38,16 @@ export async function getFlow(id: string): Promise<FlowDef | null> {
   };
 }
 
-export async function listFlows(): Promise<Array<{ id: string; name: string }>> {
+export async function listFlows(userId: string): Promise<Array<{ id: string; name: string }>> {
   const { rows } = await pool.query<{ id: string; name: string }>(
-    `SELECT id, name FROM flows ORDER BY updated_at DESC LIMIT 100`,
+    `SELECT id, name FROM flows WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 100`,
+    [userId],
   );
   return rows;
 }
 
-export async function deleteFlow(id: string): Promise<void> {
-  await pool.query(`DELETE FROM flows WHERE id = $1`, [id]);
+export async function deleteFlow(id: string, userId: string): Promise<void> {
+  await pool.query(`DELETE FROM flows WHERE id = $1 AND user_id = $2`, [id, userId]);
 }
 
 export async function createRun(runId: RunId, flowId: string): Promise<void> {

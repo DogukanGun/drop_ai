@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-postiz",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-postiz",
+      "category": "Communication",
+      "label": "Postiz",
+      "description": "Schedule posts and manage content across 28+ social media platforms",
+      "color": "#8b5cf6",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "platforms": "twitter,linkedin", "scheduledAt": "" }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-smart-home",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-smart-home",
+      "category": "IoT",
+      "label": "Smart Home",
+      "description": "Proactive smart home management using visual biometrics and context-aware gestures",
+      "color": "#10b981",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "" }
+    }
+  }
+}

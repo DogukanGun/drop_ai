@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-news-ai",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-news-ai",
+      "category": "Research & Data",
+      "label": "NewsAI",
+      "description": "Aggregates real-time headlines across 7 global regions and topic categories",
+      "color": "#3b82f6",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "region": "global", "category": "Technology", "maxResults": 10 }
+    }
+  }
+}

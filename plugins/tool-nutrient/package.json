@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-nutrient",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-nutrient",
+      "category": "Documents",
+      "label": "Nutrient",
+      "description": "Redact PII, convert DOCX to PDF, run OCR, and apply PAdES-compliant signatures",
+      "color": "#f59e0b",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "operation": "ocr", "documentUrl": "" }
+    }
+  }
+}

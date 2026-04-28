@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-clinagent",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-clinagent",
+      "category": "Specialized",
+      "label": "ClinAgent",
+      "description": "Clinical trial programming: read SAS datasets and generate CDISC-compliant code",
+      "color": "#ef4444",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "datasetPath": "" }
+    }
+  }
+}

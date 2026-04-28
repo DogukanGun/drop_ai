@@ -11,6 +11,7 @@ import type { NodeManifest } from '@dropai/runtime-core';
 
 export type ConfigField =
   | { kind: 'text'; key: string; label: string; placeholder?: string }
+  | { kind: 'password'; key: string; label: string; placeholder?: string }
   | { kind: 'textarea'; key: string; label: string; placeholder?: string }
   | { kind: 'select'; key: string; label: string; options: { value: string; label: string }[] }
   | { kind: 'nodeMultiSelect'; key: string; label: string; help?: string };
@@ -51,6 +52,12 @@ const FIELD_HINTS: Record<string, ConfigField[]> = {
   ],
   llm: [
     {
+      kind: 'password',
+      key: 'dropaiToken',
+      label: 'DropAI Token (optional — overrides env API key)',
+      placeholder: 'Paste your purchased DropAI token, or leave blank to use OPENAI_API_KEY',
+    },
+    {
       kind: 'select',
       key: 'model',
       label: 'Model',
@@ -79,6 +86,12 @@ const FIELD_HINTS: Record<string, ConfigField[]> = {
   ],
   'llm-agent': [
     {
+      kind: 'password',
+      key: 'dropaiToken',
+      label: 'DropAI Token (optional — overrides env API key)',
+      placeholder: 'Paste your purchased DropAI token, or leave blank to use OPENAI_API_KEY',
+    },
+    {
       kind: 'select',
       key: 'model',
       label: 'Model',
@@ -103,11 +116,274 @@ const FIELD_HINTS: Record<string, ConfigField[]> = {
     { kind: 'text', key: 'maxIterations', label: 'Max iterations' },
     { kind: 'text', key: 'temperature', label: 'Temperature' },
   ],
+  'llm-claude': [
+    {
+      kind: 'password',
+      key: 'dropaiToken',
+      label: 'DropAI Token',
+      placeholder: 'Paste your purchased DropAI token here',
+    },
+    {
+      kind: 'select',
+      key: 'model',
+      label: 'Model',
+      options: [
+        { value: 'claude-sonnet-4-6', label: 'claude-sonnet-4-6' },
+        { value: 'claude-opus-4-7', label: 'claude-opus-4-7' },
+        { value: 'claude-haiku-4-5-20251001', label: 'claude-haiku-4-5' },
+      ],
+    },
+    {
+      kind: 'textarea',
+      key: 'systemPrompt',
+      label: 'System prompt',
+      placeholder: 'You are a helpful assistant.',
+    },
+    {
+      kind: 'textarea',
+      key: 'userPromptTemplate',
+      label: 'User prompt template ({{input}} = upstream / chat message)',
+      placeholder: '{{input}}',
+    },
+    { kind: 'text', key: 'temperature', label: 'Temperature' },
+    { kind: 'text', key: 'maxTokens', label: 'Max tokens' },
+  ],
+  'llm-agent-claude': [
+    {
+      kind: 'password',
+      key: 'dropaiToken',
+      label: 'DropAI Token',
+      placeholder: 'Paste your purchased DropAI token here',
+    },
+    {
+      kind: 'select',
+      key: 'model',
+      label: 'Model',
+      options: [
+        { value: 'claude-sonnet-4-6', label: 'claude-sonnet-4-6' },
+        { value: 'claude-opus-4-7', label: 'claude-opus-4-7' },
+        { value: 'claude-haiku-4-5-20251001', label: 'claude-haiku-4-5' },
+      ],
+    },
+    {
+      kind: 'textarea',
+      key: 'systemPrompt',
+      label: 'System prompt',
+      placeholder: 'You are a helpful agent.',
+    },
+    {
+      kind: 'nodeMultiSelect',
+      key: 'tools',
+      label: 'Tools',
+      help: 'Pick which canvas nodes the agent can call. Tool nodes are skipped from the linear run order.',
+    },
+    { kind: 'text', key: 'maxIterations', label: 'Max iterations' },
+    { kind: 'text', key: 'temperature', label: 'Temperature' },
+    { kind: 'text', key: 'maxTokens', label: 'Max tokens' },
+  ],
+  'llm-qwen': [
+    {
+      kind: 'password',
+      key: 'dropaiToken',
+      label: 'DropAI Token',
+      placeholder: 'Paste your purchased DropAI token here',
+    },
+    {
+      kind: 'select',
+      key: 'model',
+      label: 'Model',
+      options: [
+        { value: 'qwen2.5-72b-instruct', label: 'qwen2.5-72b-instruct' },
+        { value: 'qwen2.5-32b-instruct', label: 'qwen2.5-32b-instruct' },
+        { value: 'qwen3-235b-a22b', label: 'qwen3-235b-a22b' },
+      ],
+    },
+    {
+      kind: 'textarea',
+      key: 'systemPrompt',
+      label: 'System prompt',
+      placeholder: 'You are a helpful assistant.',
+    },
+    {
+      kind: 'textarea',
+      key: 'userPromptTemplate',
+      label: 'User prompt template ({{input}} = upstream / chat message)',
+      placeholder: '{{input}}',
+    },
+    { kind: 'text', key: 'temperature', label: 'Temperature' },
+    { kind: 'text', key: 'maxTokens', label: 'Max tokens' },
+  ],
   'tool-fetch': [{ kind: 'text', key: 'url', label: 'Default URL (optional)' }],
   'tool-calculator': [{ kind: 'text', key: 'expression', label: 'Default expression (optional)' }],
   'tool-web-search': [
     { kind: 'text', key: 'query', label: 'Default query (optional)' },
     { kind: 'text', key: 'maxResults', label: 'Max results' },
+  ],
+
+  // ── Documents ──────────────────────────────────────────────────────────────
+  'tool-pdf-signer': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'documentUrl', label: 'Document URL' },
+    { kind: 'text', key: 'signatureImageUrl', label: 'Signature Image URL' },
+  ],
+  'tool-signforge': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'signerEmail', label: 'Signer Email' },
+    { kind: 'text', key: 'documentTitle', label: 'Document Title' },
+    { kind: 'text', key: 'documentUrl', label: 'Document URL' },
+  ],
+  'tool-pdf-builder': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    {
+      kind: 'select',
+      key: 'documentType',
+      label: 'Document Type',
+      options: [
+        { value: 'NDA', label: 'NDA' },
+        { value: 'Term Sheet', label: 'Term Sheet' },
+        { value: 'Whitepaper', label: 'Whitepaper' },
+        { value: 'Invoice', label: 'Invoice' },
+      ],
+    },
+  ],
+  'tool-nutrient': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    {
+      kind: 'select',
+      key: 'operation',
+      label: 'Operation',
+      options: [
+        { value: 'ocr', label: 'OCR' },
+        { value: 'redact', label: 'Redact PII' },
+        { value: 'convert', label: 'Convert to PDF' },
+        { value: 'sign', label: 'PAdES Signature' },
+      ],
+    },
+    { kind: 'text', key: 'documentUrl', label: 'Document URL' },
+  ],
+  'tool-contract-guard': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+  ],
+
+  // ── Research & Data ────────────────────────────────────────────────────────
+  'tool-news-ai': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    {
+      kind: 'select',
+      key: 'region',
+      label: 'Region',
+      options: [
+        { value: 'global', label: 'Global' },
+        { value: 'us', label: 'United States' },
+        { value: 'eu', label: 'Europe' },
+        { value: 'asia', label: 'Asia' },
+        { value: 'latam', label: 'Latin America' },
+        { value: 'africa', label: 'Africa' },
+        { value: 'oceania', label: 'Oceania' },
+      ],
+    },
+    {
+      kind: 'select',
+      key: 'category',
+      label: 'Category',
+      options: [
+        { value: 'Technology', label: 'Technology' },
+        { value: 'Business', label: 'Business' },
+        { value: 'Science', label: 'Science' },
+        { value: 'Health', label: 'Health' },
+        { value: 'Sports', label: 'Sports' },
+        { value: 'Entertainment', label: 'Entertainment' },
+      ],
+    },
+    { kind: 'text', key: 'maxResults', label: 'Max results' },
+  ],
+  'tool-ai-news': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'topic', label: 'Topic filter (optional)' },
+    { kind: 'text', key: 'maxArticles', label: 'Max articles' },
+  ],
+  'tool-patent-ai': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'maxResults', label: 'Max results' },
+  ],
+  'tool-earth-link': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'dataType', label: 'Data type (e.g. climate, precipitation)' },
+  ],
+  'tool-ai-scientist': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'domain', label: 'Research domain' },
+    { kind: 'text', key: 'maxIterations', label: 'Max iterations' },
+  ],
+
+  // ── Communication & Media ──────────────────────────────────────────────────
+  'tool-agentic-mail': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'to', label: 'To (email address)' },
+    { kind: 'text', key: 'subject', label: 'Subject' },
+  ],
+  'tool-postiz': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'platforms', label: 'Platforms (comma-separated)' },
+    { kind: 'text', key: 'scheduledAt', label: 'Schedule at (ISO datetime, optional)' },
+  ],
+  'tool-vimax': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'episodeCount', label: 'Episode count' },
+    { kind: 'text', key: 'style', label: 'Style (e.g. cinematic, anime)' },
+  ],
+
+  // ── IoT & Smart Home ───────────────────────────────────────────────────────
+  'tool-matter-mcp': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'deviceId', label: 'Device ID (optional)' },
+  ],
+  'tool-smart-home': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+  ],
+
+  // ── Finance & Business ─────────────────────────────────────────────────────
+  'tool-agent-bank': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    {
+      kind: 'select',
+      key: 'operation',
+      label: 'Operation',
+      options: [
+        { value: 'transfer', label: 'Transfer' },
+        { value: 'invoice', label: 'Create Invoice' },
+        { value: 'balance', label: 'Check Balance' },
+        { value: 'invest', label: 'Manage Idle Funds' },
+      ],
+    },
+  ],
+  'tool-jobclaw': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'role', label: 'Role / job title' },
+    {
+      kind: 'select',
+      key: 'mode',
+      label: 'Mode',
+      options: [
+        { value: 'seeker', label: 'Job Seeker' },
+        { value: 'recruiter', label: 'Recruiter' },
+      ],
+    },
+  ],
+
+  // ── Specialized ────────────────────────────────────────────────────────────
+  'tool-clinagent': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'datasetPath', label: 'SAS dataset path' },
+  ],
+  'tool-medical-mcp': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'patientId', label: 'Patient ID (optional)' },
+  ],
+  'tool-pentagi': [
+    { kind: 'password', key: 'dropaiToken', label: 'DropAI Token', placeholder: 'Paste your purchased DropAI token' },
+    { kind: 'text', key: 'scope', label: 'Scope (authorized targets only)' },
+    { kind: 'text', key: 'targetUrl', label: 'Target URL' },
   ],
 };
 

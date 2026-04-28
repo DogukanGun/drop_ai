@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-jobclaw",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-jobclaw",
+      "category": "Finance",
+      "label": "JobClaw",
+      "description": "Agent-to-agent hiring platform where job-seeker and recruiter agents negotiate matches",
+      "color": "#6366f1",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "role": "", "mode": "seeker" }
+    }
+  }
+}

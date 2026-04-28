@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-vimax",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-vimax",
+      "category": "Communication",
+      "label": "ViMax",
+      "description": "Turn raw ideas or novels into episodic video content with character consistency",
+      "color": "#8b5cf6",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "episodeCount": 1, "style": "cinematic" }
+    }
+  }
+}

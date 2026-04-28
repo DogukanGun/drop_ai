@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-contract-guard",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-contract-guard",
+      "category": "Documents",
+      "label": "ContractGuard",
+      "description": "Flags financial risks, unfair terms, and negotiation suggestions in contracts",
+      "color": "#f59e0b",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "" }
+    }
+  }
+}

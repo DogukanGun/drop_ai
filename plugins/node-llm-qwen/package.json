@@ -1,0 +1,28 @@
+{
+  "name": "@dropai/node-llm-qwen",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "llm-qwen",
+      "category": "AI",
+      "label": "Qwen LLM",
+      "description": "Single-shot chat completion via Qwen (requires a DropAI token)",
+      "color": "#059669",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": {
+        "model": "qwen2.5-72b-instruct",
+        "dropaiToken": "",
+        "systemPrompt": "You are a helpful assistant.",
+        "userPromptTemplate": "{{input}}",
+        "temperature": 0.7,
+        "maxTokens": 1024
+      }
+    }
+  }
+}

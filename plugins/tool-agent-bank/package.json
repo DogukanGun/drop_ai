@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-agent-bank",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-agent-bank",
+      "category": "Finance",
+      "label": "AgentBank",
+      "description": "CLI-first banking for agents: propose transfers, create invoices, manage idle funds",
+      "color": "#6366f1",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "operation": "transfer" }
+    }
+  }
+}

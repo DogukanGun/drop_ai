@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-pentagi",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-pentagi",
+      "category": "Specialized",
+      "label": "Pentagi",
+      "description": "Autonomous penetration testing using 20+ security tools (authorized targets only)",
+      "color": "#ef4444",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "scope": "", "targetUrl": "" }
+    }
+  }
+}

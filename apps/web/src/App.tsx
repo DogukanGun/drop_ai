@@ -3,11 +3,22 @@ import { Palette } from './Palette';
 import { Canvas } from './Canvas';
 import { Inspector } from './Inspector';
 import { VizPanel } from './VizPanel';
-import { useFlow } from './store';
+import { useFlow, useAuth } from './store';
 import { fetchNodeManifests, saveFlow } from './api';
 import { paletteFromManifests } from './seedNodes';
+import { LoginPage } from './LoginPage';
 
 export function App() {
+  const isAuthenticated = useAuth(s => s.isAuthenticated);
+  const user = useAuth(s => s.user);
+  const signOut = useAuth(s => s.signOut);
+
+  if (!isAuthenticated) return <LoginPage />;
+
+  return <Canvas_ user={user?.email} onSignOut={signOut} />;
+}
+
+function Canvas_({ user, onSignOut }: { user?: string; onSignOut: () => void }) {
   const saveLocal = useFlow(s => s.saveLocal);
   const loadLocal = useFlow(s => s.loadLocal);
   const setFlowId = useFlow(s => s.setFlowId);
@@ -81,6 +92,15 @@ export function App() {
           Memory: {memoryEnabled ? 'on' : 'off'}
         </button>
         <button onClick={onSave}>Save</button>
+        {user && (
+          <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{user}</span>
+        )}
+        <button
+          onClick={onSignOut}
+          style={{ background: 'var(--panel-2)', color: 'var(--text-dim)', borderColor: 'var(--border)' }}
+        >
+          Sign out
+        </button>
       </div>
       <Palette />
       <Canvas />

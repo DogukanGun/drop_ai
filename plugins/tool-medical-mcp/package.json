@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-medical-mcp",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-medical-mcp",
+      "category": "Specialized",
+      "label": "Medical MCP",
+      "description": "Connect agents to patient-centric medical data for trend analysis and clinical insights",
+      "color": "#ef4444",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "patientId": "" }
+    }
+  }
+}

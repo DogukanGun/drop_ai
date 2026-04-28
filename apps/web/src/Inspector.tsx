@@ -114,6 +114,14 @@ export function Inspector() {
                 onChange={e => onChange(e.target.value)}
               />
             )}
+            {field.kind === 'password' && (
+              <input
+                type="password"
+                value={value}
+                placeholder={field.placeholder}
+                onChange={e => onChange(e.target.value)}
+              />
+            )}
             {field.kind === 'select' && (
               <select value={value} onChange={e => onChange(e.target.value)}>
                 {field.options.map(o => (

@@ -1,0 +1,21 @@
+{
+  "name": "@dropai/tool-patent-ai",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./runtime.js",
+  "dropai": {
+    "node": {
+      "type": "tool-patent-ai",
+      "category": "Research & Data",
+      "label": "PatentAI",
+      "description": "Semantic full-text search across 12M+ USPTO patents with prior-art analysis",
+      "color": "#3b82f6",
+      "inputs": 1,
+      "outputs": 1,
+      "runner": "node",
+      "runtime": "./runtime.js",
+      "defaults": { "dropaiToken": "", "maxResults": 10 }
+    }
+  }
+}
