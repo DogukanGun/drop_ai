@@ -26,11 +26,12 @@ CREATE TABLE IF NOT EXISTS runs (
   error         TEXT
 );
 
+-- idempotent: add user_id to pre-existing flows tables (must run before the
+-- index below so the column exists when we try to index it).
+ALTER TABLE flows ADD COLUMN IF NOT EXISTS user_id TEXT REFERENCES users(id) ON DELETE CASCADE;
+
 CREATE INDEX IF NOT EXISTS runs_flow_id_idx ON runs(flow_id);
 CREATE INDEX IF NOT EXISTS flows_user_id_idx ON flows(user_id);
-
--- idempotent: add user_id to pre-existing flows tables
-ALTER TABLE flows ADD COLUMN IF NOT EXISTS user_id TEXT REFERENCES users(id) ON DELETE CASCADE;
 `;
 
 async function main() {

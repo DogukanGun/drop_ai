@@ -18,6 +18,8 @@ import { useFlow, type FlowEdge, type FlowNode } from './store';
 import { DropAINode } from './DropAINode';
 
 const nodeTypes = { dropai: DropAINode };
+const AGENT_TYPES = new Set(['llm-agent', 'llm-agent-claude']);
+const TOOL_EDGE_STYLE = { strokeDasharray: '5,5', stroke: '#b07bff' } as const;
 
 function CanvasInner() {
   const nodes = useFlow(s => s.nodes);
@@ -40,6 +42,37 @@ function CanvasInner() {
   const onConnect = useCallback(
     (conn: Connection) => setEdges(prev => addEdge(conn, prev) as FlowEdge[]),
     [setEdges],
+  );
+
+  const isValidConnection = useCallback(
+    (conn: Connection | FlowEdge) => {
+      if (!conn.source || !conn.target) return false;
+      if (conn.source === conn.target) return false;
+      const src = nodes.find(n => n.id === conn.source);
+      const tgt = nodes.find(n => n.id === conn.target);
+      if (!src || !tgt) return false;
+      const targetHandle = (conn as Connection).targetHandle ?? null;
+      const sourceHandle = (conn as Connection).sourceHandle ?? null;
+      if (sourceHandle === 'flow-in' || sourceHandle === 'tools') return false;
+      if (targetHandle === 'tools') {
+        return !AGENT_TYPES.has(src.data.type);
+      }
+      if (targetHandle === 'flow-in' || targetHandle === null) {
+        return sourceHandle === 'flow-out' || sourceHandle === null;
+      }
+      return false;
+    },
+    [nodes],
+  );
+
+  const styledEdges = useMemo(
+    () =>
+      edges.map(e =>
+        e.targetHandle === 'tools'
+          ? { ...e, animated: true, style: TOOL_EDGE_STYLE }
+          : e,
+      ),
+    [edges],
   );
 
   const onDrop = useCallback(
@@ -85,11 +118,12 @@ function CanvasInner() {
     <div className="canvas-wrap" onDrop={onDrop} onDragOver={onDragOver}>
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={styledEdges}
         onInit={inst => (flowRef.current = inst)}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
         onPaneClick={handlers.onPaneClick}
         onNodeClick={handlers.onNodeClick}
         nodeTypes={nodeTypes}

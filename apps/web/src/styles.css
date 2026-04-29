@@ -190,5 +190,46 @@ body {
 
 /* React Flow overrides */
 .react-flow__handle { background: var(--accent); border: 2px solid var(--bg); width: 9px; height: 9px; }
+.react-flow__handle.flow-in-handle::after,
+.react-flow__handle.flow-out-handle::after {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.react-flow__handle.flow-in-handle::after  { content: 'in';  right: 13px; }
+.react-flow__handle.flow-out-handle::after { content: 'out'; left:  13px; }
+.dropai-node.selected .react-flow__handle.flow-in-handle::after,
+.dropai-node.selected .react-flow__handle.flow-out-handle::after,
+.react-flow__handle.flow-in-handle:hover::after,
+.react-flow__handle.flow-out-handle:hover::after { opacity: 1; }
+.react-flow__handle.tools-handle {
+  background: #b07bff;
+  border: 2px dashed #1a1f29;
+  width: 12px;
+  height: 12px;
+  bottom: -7px;
+}
+.react-flow__handle.tools-handle::after {
+  content: 'tools';
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: #b07bff;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.dropai-node.selected .react-flow__handle.tools-handle::after,
+.react-flow__handle.tools-handle:hover::after { opacity: 1; }
 .react-flow__edge-path { stroke: var(--accent); stroke-width: 1.5; }
 .react-flow__background { background-color: transparent; }

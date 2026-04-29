@@ -15,6 +15,8 @@ import { startRun } from './runtime/executor.js';
 import { eventBus } from './runtime/eventBus.js';
 import { nodeRegistry } from './nodes/loader.js';
 import { listMemory } from './runtime/memory.js';
+import { buildBundle, BundleError } from './bundler/bundle.js';
+import JSZip from 'jszip';
 
 interface JwtPayload {
   userId: string;
@@ -149,6 +151,36 @@ async function main() {
     { preHandler: authenticate },
     async req => {
       return { triples: listMemory(req.params.id) };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/api/flows/:id/download',
+    { preHandler: authenticate },
+    async (req, reply) => {
+      const { userId } = currentUser(req);
+      const flow = await getFlow(req.params.id, userId);
+      if (!flow) return reply.code(404).send({ error: 'not found' });
+      let files: Map<string, string>;
+      try {
+        files = buildBundle(flow);
+      } catch (err) {
+        if (err instanceof BundleError) {
+          return reply.code(400).send({ error: err.message });
+        }
+        throw err;
+      }
+      const zip = new JSZip();
+      for (const [path, content] of files) zip.file(path, content);
+      const buf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+      const safeName = (flow.name || flow.id)
+        .replace(/[^a-zA-Z0-9._-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60) || 'dropai-flow';
+      reply
+        .header('content-type', 'application/zip')
+        .header('content-disposition', `attachment; filename="${safeName}.zip"`)
+        .send(buf);
     },
   );
 

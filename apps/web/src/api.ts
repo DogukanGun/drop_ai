@@ -88,6 +88,28 @@ export async function saveFlow(flow: FlowDef): Promise<{ id: string }> {
   return res.json();
 }
 
+export async function downloadFlow(flowId: string, fallbackName: string): Promise<void> {
+  const res = await guardedFetch(`/api/flows/${flowId}/download`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `download: ${res.status}`);
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get('content-disposition') ?? '';
+  const match = /filename="([^"]+)"/.exec(disposition);
+  const filename = match?.[1] ?? `${fallbackName || 'dropai-flow'}.zip`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export async function startRun(
   flowId: string,
   body?: { input?: unknown },

@@ -4,7 +4,7 @@ import { Canvas } from './Canvas';
 import { Inspector } from './Inspector';
 import { VizPanel } from './VizPanel';
 import { useFlow, useAuth } from './store';
-import { fetchNodeManifests, saveFlow } from './api';
+import { fetchNodeManifests, saveFlow, downloadFlow } from './api';
 import { paletteFromManifests } from './seedNodes';
 import { LoginPage } from './LoginPage';
 
@@ -57,6 +57,19 @@ function Canvas_({ user, onSignOut }: { user?: string; onSignOut: () => void }) 
     saveLocal();
   }, [memoryEnabled, setSettings, saveLocal]);
 
+  const onDownload = useCallback(async () => {
+    setStatus('packaging…');
+    try {
+      const def = toFlowDef();
+      const { id } = await saveFlow(def);
+      setFlowId(id);
+      await downloadFlow(id, def.name);
+      setStatus('downloaded');
+    } catch (err) {
+      setStatus(`download failed: ${err instanceof Error ? err.message : err}`);
+    }
+  }, [toFlowDef, setFlowId]);
+
   return (
     <div className="app-shell">
       <div className="topbar">
@@ -92,6 +105,12 @@ function Canvas_({ user, onSignOut }: { user?: string; onSignOut: () => void }) 
           Memory: {memoryEnabled ? 'on' : 'off'}
         </button>
         <button onClick={onSave}>Save</button>
+        <button
+          onClick={onDownload}
+          title="Download a standalone, runnable copy of this flow"
+        >
+          Download
+        </button>
         {user && (
           <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{user}</span>
         )}

@@ -1,9 +1,12 @@
-import type { AgentEvent, FlowDef, FlowNode, NodeId, RunCtx, RunId } from '@dropai/runtime-core';
+import type { AgentEvent, FlowDef, FlowEdge, FlowNode, NodeId, RunCtx, RunId } from '@dropai/runtime-core';
 import { eventBus } from './eventBus.js';
 import { topoSort, predecessors } from './topoSort.js';
 import { callNodeRuntime, nodeRegistry } from '../nodes/loader.js';
 import { setRunStatus } from '../db/flows.js';
 import { buildPromptWithMemory, ingestTurn } from './memory.js';
+
+const AGENT_TYPES = new Set(['llm-agent', 'llm-agent-claude']);
+const TOOLS_HANDLE = 'tools';
 
 export interface RunHandle {
   runId: RunId;
@@ -19,8 +22,13 @@ export interface RunOptions {
 export function startRun(flow: FlowDef, runId: RunId, options: RunOptions = {}): RunHandle {
   const controller = new AbortController();
   const outputs = new Map<string, unknown>();
-  const sinkIds = sinks(flow);
-  const toolNodeIds = computeToolNodes(flow);
+  const fullFlow = migrateLegacyTools(flow);
+  const linearFlow: FlowDef = {
+    ...fullFlow,
+    edges: fullFlow.edges.filter(e => e.targetHandle !== TOOLS_HANDLE),
+  };
+  const sinkIds = sinks(linearFlow);
+  const toolNodeIds = computeToolNodes(fullFlow);
 
   const memoryEnabled = Boolean(flow.settings?.memoryEnabled);
   const userText = typeof options.input === 'string' ? options.input : '';
@@ -39,15 +47,15 @@ export function startRun(flow: FlowDef, runId: RunId, options: RunOptions = {}):
     try {
       // Tool nodes are excluded from linear execution; they only run when an
       // agent calls them via ctx.callTool.
-      const order = topoSort(flow).filter(id => !toolNodeIds.has(id));
+      const order = topoSort(linearFlow).filter(id => !toolNodeIds.has(id));
       for (const nodeId of order) {
         if (controller.signal.aborted) throw new Error('aborted');
-        const node = flow.nodes.find(n => n.id === nodeId);
+        const node = fullFlow.nodes.find(n => n.id === nodeId);
         if (!node) continue;
-        const inputMsg = collectInput(flow, nodeId, outputs, runtimeInput);
-        const ctx: RunCtx = makeCtx(runId, nodeId, controller.signal, flow);
+        const inputMsg = collectInput(linearFlow, nodeId, outputs, runtimeInput);
+        const ctx: RunCtx = makeCtx(runId, nodeId, controller.signal, fullFlow);
         try {
-          const config = injectAgentTools(node, flow);
+          const config = injectAgentTools(node, fullFlow);
           const result = await callNodeRuntime(node.type, ctx, config, inputMsg);
           outputs.set(nodeId, result);
         } catch (err) {
@@ -126,44 +134,67 @@ function finalResult(sinkIds: string[], outputs: Map<string, unknown>): unknown 
   return Object.fromEntries(sinkIds.map(id => [id, outputs.get(id) ?? null]));
 }
 
-/** Union of every llm-agent node's `config.tools` list. */
+/** Source nodes of every edge that targets an agent's `tools` handle. */
 function computeToolNodes(flow: FlowDef): Set<NodeId> {
   const ids = new Set<NodeId>();
-  for (const n of flow.nodes) {
-    if (n.type !== 'llm-agent') continue;
-    const tools = n.config?.tools;
-    if (!Array.isArray(tools)) continue;
-    for (const t of tools) {
-      if (typeof t === 'string') ids.add(t);
-    }
+  for (const e of flow.edges) {
+    if (e.targetHandle === TOOLS_HANDLE) ids.add(e.source);
   }
   return ids;
 }
 
 /**
- * For llm-agent nodes, resolve their tool list into manifest summaries
- * (name, description) and inject into config so the plugin can build OpenAI
- * tool specs without needing access to the registry.
+ * For llm-agent nodes, resolve the set of tools wired into their `tools`
+ * handle into manifest summaries and inject into config so the plugin can
+ * build OpenAI tool specs without needing access to the registry.
  */
 function injectAgentTools(node: FlowNode, flow: FlowDef): Record<string, unknown> {
-  if (node.type !== 'llm-agent') return node.config;
-  const toolIds = Array.isArray(node.config?.tools) ? (node.config.tools as string[]) : [];
-  const manifests = nodeRegistry.list();
-  const byType = new Map(manifests.map(m => [m.type, m]));
-  const resolved = toolIds
-    .map(id => {
-      const target = flow.nodes.find(n => n.id === id);
-      if (!target) return null;
-      const manifest = byType.get(target.type);
+  if (!AGENT_TYPES.has(node.type)) return node.config;
+  const byType = new Map(nodeRegistry.list().map(m => [m.type, m]));
+  const resolved = flow.edges
+    .filter(e => e.target === node.id && e.targetHandle === TOOLS_HANDLE)
+    .map(e => flow.nodes.find(n => n.id === e.source))
+    .filter((n): n is FlowNode => !!n)
+    .map(n => {
+      const m = byType.get(n.type);
       return {
-        nodeId: target.id,
-        type: target.type,
-        label: manifest?.label ?? target.type,
-        description: manifest?.description ?? '',
+        nodeId: n.id,
+        type: n.type,
+        label: m?.label ?? n.type,
+        description: m?.description ?? '',
       };
-    })
-    .filter(Boolean);
+    });
   return { ...node.config, _tools: resolved };
+}
+
+/**
+ * Old flows persisted tools as `agent.config.tools: NodeId[]`. Materialize
+ * those into synthetic edges into the agent's `tools` handle so the rest of
+ * the executor sees a uniform shape. Read-time only; the persisted DB row
+ * is left untouched.
+ */
+function migrateLegacyTools(flow: FlowDef): FlowDef {
+  const extra: FlowEdge[] = [];
+  let mutated = false;
+  const nodes = flow.nodes.map(n => {
+    if (!AGENT_TYPES.has(n.type)) return n;
+    const legacy = Array.isArray(n.config?.tools) ? (n.config.tools as unknown[]) : null;
+    if (!legacy || legacy.length === 0) return n;
+    mutated = true;
+    for (const id of legacy) {
+      if (typeof id !== 'string') continue;
+      extra.push({
+        id: `legacy-tool-${n.id}-${id}`,
+        source: id,
+        target: n.id,
+        targetHandle: TOOLS_HANDLE,
+      });
+    }
+    const { tools: _drop, ...rest } = n.config as Record<string, unknown>;
+    return { ...n, config: rest };
+  });
+  if (!mutated) return flow;
+  return { ...flow, nodes, edges: [...flow.edges, ...extra] };
 }
 
 function makeCtx(runId: RunId, nodeId: string, signal: AbortSignal, flow: FlowDef): RunCtx {
